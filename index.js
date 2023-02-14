@@ -1,3 +1,5 @@
+//@ts-check
+
 // http://stackoverflow.com/questions/14970224/anyone-know-of-a-good-way-to-convert-from-less-to-sass
 
 function Less2Sass(){
@@ -11,6 +13,7 @@ Less2Sass.prototype.convert = function(file) {
   this.convertInterpolatedVariables()
       .convertVariables()
       .convertTildaStrings()
+      .convertMixinsWhen()
       .convertMixins()
       .includeMixins()
       .convertExtend()
@@ -39,6 +42,50 @@ Less2Sass.prototype.convertMixins = function() {
   this.file = this.file.replace(mixinRegexWithSemicolon, function (match, g1, g2, g3) {
     return g1 + '@mixin ' + g2 + '(' + g3.replace(/;/g, ',') + ') {';
   });
+  return this;
+};
+
+Less2Sass.prototype.convertMixinsWhen = function () {
+  
+  const mixinWhenRegex = /^([ \t]*?)\.([\w\-]*?)\s*\(([^\)]+?)?\)\s*when \(((?:\s*default\(\s*\)\s*)|(?:[^\)]+))\)\s*\{([\s\S]*?)[\n\r]}/gm;
+  // const mixinWhenRegex = /^([ \t]*?)\.([\w\-]*?)\s*\(([^\)]+?)?\)\s*when \(([^\)]+)\)\s*\{([\s\S]*?)[\n\r]}/gm;    
+  // this.file = this.file.replace(mixinWhenRegex, '$1@mixin $2($3) {');
+
+  let mixins = {}
+  const mixinArgs = {}
+
+  this.file = this.file.replace(mixinWhenRegex, function (match, indent, mixinName, args, condition, body) {
+
+    const indentUnit = ' '.repeat(4);                 //  '\t';
+    mixinName = args.trim()
+      ? mixinName + '(' + args + ')'
+      : ('%' + mixinName)
+    condition = condition.replace(/[^\>\<](=)[^\>\<]\b/g, '==');
+
+    const statement = condition.trim().startsWith('default(')
+      ? '@else'
+      : mixins[mixinName]
+        ? ('@else if ' + condition.replace(/=/g, '=='))
+        : ('@if ' + condition);
+    // has no 100% convertion analog, elseif|if does not cover all cases. Thuth => some kind of `if & elseif` (custom mixin)
+    // : ('@if ' + condition)
+    let content = indent + indentUnit + statement + ' {' + body.split('\n').map(line => indentUnit + line).join('\n') + '\n' + indent + indentUnit + '}\n'
+    mixins[mixinName] = (mixins[mixinName] || '') + content;
+
+    // return indent + '@mixin ' + mixinName + '(' + args.replace(/\@/g, '$') + ') {\n' + content + '\n' + indent + '}'
+    return (mixins[mixinName] == content)
+      ? 'convertMixinsWhen__' + mixinName
+      : ''
+  });
+
+  Object.entries(mixins).forEach(([mixinName, content]) => {
+    this.file = this.file.replace('convertMixinsWhen__' + mixinName, '@mixin ' + mixinName + '{\n' + content + '}\n');
+  })
+
+  this.file = this.file.replace(/\n\n+/g, '\n\n')
+
+  this.file = this.file.replace(/^([ \t]*?)\&[ ]*when[ ]*\(([^\)]+)\)/gm, '$1if $2')
+
   return this;
 };
 

@@ -1,0 +1,15 @@
+.mixin_func(@a) {
+    & when (@a > 5) {
+        z-index: @a;
+    }    
+    & when (@a < 5) {
+        z-index: @a;
+    } 
+}
+
+@index: 6;
+
+.class {
+    .mixin_func(@index);
+}
+

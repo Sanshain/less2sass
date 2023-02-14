@@ -1,0 +1,9 @@
+.mixin_func(@arg) {
+    color: @arg;
+}
+
+@color: red;
+
+.class {
+    .mixin_func(@color);
+}

@@ -1,0 +1,18 @@
+.mixin_func(@a) when (@a > 5) {
+    z-index: @a;
+}
+
+.mixin_func(@a) when (@a < 5) {
+    z-index: @a * 2;
+}
+
+.mixin_func(@a) when (default()) {
+    z-index: 0;
+}
+
+@index: 6;
+
+.class {
+    .mixin_func(@index);
+}
+

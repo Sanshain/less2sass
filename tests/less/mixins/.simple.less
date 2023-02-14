@@ -1,0 +1,13 @@
+.mixin_func(){
+    color: red;
+}
+
+.class{
+    .mixin_func();
+}
+
+.sub_class{
+    // add @extends and append % to mixin name defiintion 
+    .class
+}
+

@@ -1,0 +1,20 @@
+/* unlike css, there are no functions in less to return a value. Instead,
+values are assigned to variables,
+which are then spat out together with the mixin call to the environment and these values can be used there. Thus,
+to find out what the function should return,
+you need to parse the entire syntax tree where this mixin is called. It is possible that several variables are used,
+then a dictionary should be returned to sass. In general Too hard to implemened
+*/
+
+.mixin(@a) when (@a =1) {
+    @return_value: value;
+}
+
+.test {
+    .mixin(1);
+    content: @return_value;
+}
+
+
+
+// https: //mrmlnc.gitbooks.io/less-guidebook-for-beginners/content/chapter_5/if.html
